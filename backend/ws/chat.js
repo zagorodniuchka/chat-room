@@ -1,25 +1,28 @@
-import { WebSocketServer } from 'ws';
+const WebSocket = require('ws');
+const http = require('http');
 
-// Запускаем WS-сервер на порту 8080
-const wss = new WebSocketServer({ port: 8080 });
+const server = http.createServer();
+const wss = new WebSocket.Server({ server });
 
-wss.on('connection', (ws) => {
-    console.log('🧠 Новый клиент подключился');
+wss.on('connection', function connection(ws) {
+    console.log('Новое подключение WebSocket');
 
-    // При получении сообщения от клиента
-    ws.on('message', (message) => {
-        console.log('📨 Сообщение от клиента:', message.toString());
+    ws.on('message', function incoming(message) {
+        console.log('Получено сообщение:', message);
 
-        // Рассылаем всем, кроме отправителя
-        wss.clients.forEach(client => {
-            if (client !== ws && client.readyState === client.OPEN) {
-                client.send(message.toString());
+        // Разошлём всем участникам чата
+        wss.clients.forEach(function each(client) {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(message);
             }
         });
     });
 
-    // Приветствуем клиента
-    ws.send('👋 Добро пожаловать в WebSocket чат!');
+    ws.on('close', () => {
+        console.log('Пользователь вышел из чата');
+    });
 });
 
-export default wss;
+server.listen(8080, () => {
+    console.log('WebSocket сервер слушает на порту 8080');
+});
