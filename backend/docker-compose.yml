@@ -1,16 +1,44 @@
-version: "3.8"
+version: '3.9'
+
 services:
   db:
     image: postgres:15
-    restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: SED465az!
       POSTGRES_DB: messages_db
-    ports:
-      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    ports:
+      - '5433:5432'
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - '5672:5672'     # RabbitMQ AMQP
+      - '15672:15672'   # RabbitMQ Web UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  backend:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - '3000:3000'
+      - '8080:8080'
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: SED465az!
+      DB_NAME: messages_db
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      - db
+      - rabbitmq
+    command: npm run dev
 
 volumes:
   pgdata:

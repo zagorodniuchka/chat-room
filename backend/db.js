@@ -13,7 +13,6 @@ for (const key of requiredEnv) {
     }
 }
 
-// Подключение к базе
 const pool = new Pool({
     host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT),
@@ -22,7 +21,6 @@ const pool = new Pool({
     database: process.env.DB_NAME,
 });
 
-// Тест коннекта сразу при запуске
 (async () => {
     try {
         const client = await pool.connect();
